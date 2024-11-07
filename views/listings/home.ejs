@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Website With Login & Registration</title>
+    <!-- <link rel="stylesheet" href="/css/about.css"> -->
+    <style>
+        html {
+    scroll-behavior: smooth;
+  }
+
+.parallax{
+    /* position: relative; */
+    display: flex;
+    /* justify-content: center; */
+    /* align-items: center; */
+    height: 100vh;
+    background: url('about.jpg') no-repeat;
+    background-size:cover;
+    background-position: center;
+    background-attachment:fixed;
+    scroll-behavior: smooth;
+}
+
+#text{
+    /* position: inherit; */
+    position: fixed;
+    text-align: start;
+    font-size: 5em;
+    color: #523939;
+    /* text-shadow: 2px 4px 5px #f9f9f9; */
+    font-family: 'Courier New', monospace;
+}
+
+.sec{
+    position: relative;
+    background-color: #020912;
+    padding: 30px 100px;
+}
+
+.sec h2{
+    font-size: 3em;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.sec p{
+    font-size: 1em;
+    color: #fff;
+    font-weight: 300;
+    text-align: justify;
+}
+    </style>
+    <% layout("/layouts/boilerplate") %>
+</head>
+<body>
+    <section class="parallax">
+        <h2 id="text"> The ULTIMATE VEHICLE RENTAL APPLICATION </h2>
+    </section>
+    <section class="sec">
+        <h2>Ride the Adventure: Your Ultimate Motor Rental Experience Awaits!  </h2>
+        <p>
+            Welcome to MOTO-LEASE all vehicles rental at one place 🚗  🏍️  🛵  🚜
+        </p>
+    </section>
+</body>
+</html>

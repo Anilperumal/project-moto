@@ -5,6 +5,10 @@ const Listing = require("./Models/listing.js");
 const path =  require("path");
 const methodOverride=require("method-override");
 const ejsMate=require("ejs-mate");          // it helps to create templates and layouts
+const wrapAsync= require("./utils/wrapAsync.js");  
+const expressError = require("./utils/expressError.js");
+const {listingSchema} = require("./schema.js");
+
 
 
 const Mongo_URL ='mongodb://127.0.0.1:27017/vehicle';
@@ -29,12 +33,29 @@ app.use(express.static(path.join(__dirname,"/public")));
 // These pieces are foundational for setting up a server-side application with Express and MongoDB
 
 
+app.get("/", (req,res)=>{
+    res.render("listings/home.ejs");
+});
+
+
+// validation at servier side
+const validateListing = (req,res,next)=>{
+    let {error}= listingSchema.validate(req.body);
+    // console.log(result);
+    if(error){
+        throw new expressError(400, error);
+    }
+    else{
+        next();
+    }
+}
+
 
 // Index Route 
-app.get("/listings", async (req,res)=>{
+app.get("/listings", wrapAsync(async (req,res, next)=>{
   const allListings = await Listing.find({});        // runs a query to find all documents in the Listing collection
     res.render("listings/index.ejs", {allListings});      
-    });
+    }));
 
 // new Route to add vehicles 
     app.get("/listings/new", (req,res)=>{
@@ -42,53 +63,66 @@ app.get("/listings", async (req,res)=>{
     });
 
 
-// get all data of a particular list of vehicle
-app.get("/listings/:id", async (req,res)=>{
+// get all data of a particular list of vehicle  show.ejs
+app.get("/listings/:id", wrapAsync(async (req,res,next)=>{
     let {id} = req.params;
     const listing = await Listing.findById(id);
     res.render("listings/show.ejs", {listing});
-});
+}));
 
 
 // create route 
 
-app.post("/listings", async (req, res)=> {
-    try {
+app.post("/listings",validateListing, wrapAsync(async (req, res )=> {
+    // if(!req.body.listing){
+    //     throw new expressError(400, "You missed some parts to run this motor 🔧🔩⚙️")
+    // }
     let newListing = new Listing(req.body.listing);
     await newListing.save();
     res.redirect("/listings");
-} catch (err) {
-    console.error(err);
-    res.status(500).send("Error adding listing");
-}});
+   
+}));
+
 
 // Edit Route
-app.get("/listings/:id/edit", async (req,res)=>{
+app.get("/listings/:id/edit", wrapAsync(async (req,res)=>{
     let {id} = req.params;
     const listing = await Listing.findById(id); 
     res.render("listings/edit.ejs",{listing});
-})
+}));
 
 // update route
-app.put("/listings/:id", async(req,res)=>{
-    let {id} = req.params;
+app.put("/listings/:id", validateListing, wrapAsync(async(req,res, next)=>{
+    let {id} = req.params;                  // extracts the id parameter from the request's parameters object
     await Listing.findByIdAndUpdate(id,{...req.body.listing})   // req.body.listing it is a js object which contains all the parameters
     res.redirect(`/listings/${id}`);
-})
+}));
 
 
 //Delete route
 
-app.delete("/listings/:id", async(req,res)=>{
+app.delete("/listings/:id", wrapAsync(async(req,res, next)=>{
     let {id} = req.params;
     let deletedListing=await Listing.findByIdAndDelete(id);
     console.log(deletedListing);
     res.redirect("/listings");    
-})
+}));
 
-app.get("/", (req,res)=>{
-    res.send("Welcome to MOTO-LEASE all vehicles rental at one place 🚗  🏍️  🛵   🚜")
-})
+
+// when  page doesn't exists
+app.all("*", (req, res, next)=>{
+    next(new expressError(404, "Page Not Found ⚠️"));
+});
+
+
+
+   // catch any errors 
+   app.use((err,req,res,next)=>{
+    let {statusCode =500, message="You need gears to ride buddy 🪖"} = err;
+    res.status(statusCode).render("error.ejs", { message });    // extract statusCode and message from the error object (err). If statusCode or message are not defined, it assigns default values
+    // res.status(statusCode).send(message);
+});
+
 
 app.listen(8080, () => {
     console.log("Server started on port 8080");
